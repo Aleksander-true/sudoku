@@ -4,34 +4,32 @@ module.exports = function solveSudoku(matrix) {
   let position = [0,0];
   let isSolve = false;
   let values = [];
-  position = nextVacantPos();
+  positions = nextVacantPos();
+  let index = 0;
+  position = positions[index];
   values = getVacantValues(position);
 
   while (isSolve == false) {
 
-//  if (values.length == 0 && stackTries.length == 0) { console.log('Solving failure'); break }
-    if (values.length == 0) {set(matrix,0,position); [values,position]=stackTries.pop(); values.shift(); }
+  if (values.length == 0 && stackTries.length == 0) { console.log('Solving failure'); break }
+    if (values.length == 0) { set(matrix,0,position); values=stackTries.pop(); index--; position=positions[index];}
     else {
-      stackTries.push([values,position]);
-      set(matrix,values[0],position);
-      values = [];
-      position = nextVacantPos();
-//      console.log( 'position=', position);
-      if (position == false) {isSolve = true}
+      stackTries.push(values);
+      set(matrix, values.shift() ,position);
+      index++;
+      position = positions[index];
+      if (position == undefined) {isSolve = true}
       else {values = getVacantValues(position)};
     }
   }
-  
-//console.log( 'solution=', matrix);
 return matrix;
 
 function getVacantValues(position) {
+  values = [];
   let occupiedNumbers = getRow(position).concat(getColumn(position),getBlock(position));
-//  console.log('occupiedNumbers=', occupiedNumbers);
   for (let i=1; i<=9; i++) {
     if (occupiedNumbers.includes(i)==false) {values.push(i)}
   }
-//  console.log('values=',values);
   return values;
 }
 
@@ -41,23 +39,23 @@ function set(matrix, value, [rowIndex,columnIndex] ) {
 }
 
 function nextVacantPos () {
+  let arr = [];
   for ( let i=0; i<matrix.length; i++) {
     for (let j=0; j<matrix[i].length; j++) {
-      if (matrix[i][j] === 0) {return [i,j]}
+      if (matrix[i][j] === 0) {arr.push([i,j])}
     }
   }
-return false;
+return arr;
 }
 
 function getRow([rowIndex,columnIndex]) {
-  let row = matrix[rowIndex];
-  return row;
+  return matrix[rowIndex];
 }
 
 function getColumn ([rowIndex,columnIndex]) {
-  let column = Array(matrix.length);
+  let column = [];
   for (let i=0; i<matrix.length; i++) {
-    column[i] = matrix[i][columnIndex];
+    column.push(matrix[i][columnIndex]);
   }
   return column;
 }
@@ -76,7 +74,7 @@ function getBlock ([rowIndex, columnIndex]) {
   }
   switch (true) {
     case columnIndex<=2: startColumn = 0; endColumn=2; break;
-    case columnIndex>=3 && columnIndex<=5: startColumn = 3; endColumn=5; break;
+    case columnIndex>=3 && columnIndex<=5: startColumn = 3; endColumn = 5; break;
     case columnIndex>=6: startColumn = 6; endColumn=8; break;
   }
 
@@ -89,20 +87,3 @@ function getBlock ([rowIndex, columnIndex]) {
 }
 
 }
-/*
-
-const initial = [
-  [6, 5, 0, 7, 3, 0, 0, 8, 0],
-  [0, 0, 0, 4, 8, 0, 5, 3, 0],
-  [8, 4, 0, 9, 2, 5, 0, 0, 0],
-  [0, 9, 0, 8, 0, 0, 0, 0, 0],
-  [5, 3, 0, 2, 0, 9, 6, 0, 0],
-  [0, 0, 6, 0, 0, 0, 8, 0, 0],
-  [0, 0, 9, 0, 0, 0, 0, 0, 6],
-  [0, 0, 7, 0, 0, 0, 0, 5, 0],
-  [1, 6, 5, 3, 9, 0, 4, 7, 0]
-];
-
-solveSudoku(initial);
-
-*/
