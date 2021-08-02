@@ -1,49 +1,46 @@
 module.exports = function solveSudoku(matrix) {
-  // your solution
+
   let stackTries = [];
   let position = [0,0];
   let isSolve = false;
-  position = nextVacantPos(position);
-//console.log('nextPosition=', position);
-  if (position==false) {return false};
-  tryValue(1,position);
-  
-//console.log('solve=',matrix);
-  return matrix;
+  let values = [];
+  position = nextVacantPos();
+  values = getVacantValues(position);
 
+  while (isSolve == false) {
 
-function tryValue(value, position) {
-  let [rowIndex, columnIndex] = position;
-  if (value > 9) {
-    if (stackTries.length>0) {
-      matrix[rowIndex][columnIndex] = 0;
-      [value,position] = stackTries.pop(); 
-      tryValue(value+1,position);
-    } else {console.log('fail matrix='); return false;}
-    
-  }
-  if (isSolve) {return null} 
-  else {
-    matrix[rowIndex][columnIndex] = value;
-    if (checkRow(value,rowIndex) && checkColumn(value, columnIndex) && checkblock(value, rowIndex, columnIndex)) {
-      stackTries.push( [value,position]);
-      position = nextVacantPos(position);
-  //  console.log('nextPosition=', position);
-    if (position == false) {
-//      console.log('matrix 8x8', matrix);
-      isSolve = true;
-      return null;
-      } else {tryValue(1,position)};
-  
-    } else {
-      tryValue(value+1,position);
+//  if (values.length == 0 && stackTries.length == 0) { console.log('Solving failure'); break }
+    if (values.length == 0) {set(matrix,0,position); [values,position]=stackTries.pop(); values.shift(); }
+    else {
+      stackTries.push([values,position]);
+      set(matrix,values[0],position);
+      values = [];
+      position = nextVacantPos();
+//      console.log( 'position=', position);
+      if (position == false) {isSolve = true}
+      else {values = getVacantValues(position)};
     }
   }
   
+//console.log( 'solution=', matrix);
+return matrix;
+
+function getVacantValues(position) {
+  let occupiedNumbers = getRow(position).concat(getColumn(position),getBlock(position));
+//  console.log('occupiedNumbers=', occupiedNumbers);
+  for (let i=1; i<=9; i++) {
+    if (occupiedNumbers.includes(i)==false) {values.push(i)}
+  }
+//  console.log('values=',values);
+  return values;
 }
 
-function nextVacantPos (position) {
-  
+
+function set(matrix, value, [rowIndex,columnIndex] ) {
+  matrix[rowIndex][columnIndex] = value;
+}
+
+function nextVacantPos () {
   for ( let i=0; i<matrix.length; i++) {
     for (let j=0; j<matrix[i].length; j++) {
       if (matrix[i][j] === 0) {return [i,j]}
@@ -52,21 +49,20 @@ function nextVacantPos (position) {
 return false;
 }
 
-function checkRow(value,rowIndex) {
-  if (matrix[rowIndex].indexOf(value) === matrix[rowIndex].lastIndexOf(value)) {return true}
-  else {return false}
+function getRow([rowIndex,columnIndex]) {
+  let row = matrix[rowIndex];
+  return row;
 }
 
-function checkColumn (value,columnIndex) {
+function getColumn ([rowIndex,columnIndex]) {
   let column = Array(matrix.length);
   for (let i=0; i<matrix.length; i++) {
     column[i] = matrix[i][columnIndex];
   }
-  if (column.indexOf(value) === column.lastIndexOf(value)) {return true}
-  else {return false};
+  return column;
 }
 
-function checkblock (value, rowIndex, columnIndex) {
+function getBlock ([rowIndex, columnIndex]) {
   let startRow; 
   let endRow;
   let startColumn; 
@@ -80,7 +76,7 @@ function checkblock (value, rowIndex, columnIndex) {
   }
   switch (true) {
     case columnIndex<=2: startColumn = 0; endColumn=2; break;
-    case columnIndex>=3 && rowIndex<=5: startColumn = 3; endColumn=5; break;
+    case columnIndex>=3 && columnIndex<=5: startColumn = 3; endColumn=5; break;
     case columnIndex>=6: startColumn = 6; endColumn=8; break;
   }
 
@@ -89,8 +85,7 @@ function checkblock (value, rowIndex, columnIndex) {
       block.push(matrix[i][j]);
     }
   }
-  if (block.indexOf(value) === block.lastIndexOf(value)) {return true}
-  else {return false};
+  return block;
 }
 
 }
